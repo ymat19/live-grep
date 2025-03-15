@@ -1,0 +1,227 @@
+#!/bin/bash
+
+set -e
+
+# 設定
+VERSION="0.1.0"
+PREVIEW_CONTEXT=2
+TEMP_DIR=""
+PIPE_FILE=""
+CURRENT_QUERY=""
+LAST_PID=""
+
+# 依存コマンドの確認
+check_dependencies() {
+    local missing=()
+    for cmd in fzf rg bat mkfifo; do
+        if ! command -v "$cmd" &> /dev/null; then
+            missing+=("$cmd")
+        fi
+    done
+
+    if [ ${#missing[@]} -ne 0 ]; then
+        echo "Error: Required commands not found: ${missing[*]}" >&2
+        echo "Please install missing dependencies and try again." >&2
+        exit 1
+    fi
+}
+
+# 一時ディレクトリとパイプの設定
+setup_temp() {
+    TEMP_DIR=$(mktemp -d)
+    PIPE_FILE="${TEMP_DIR}/results"
+    mkfifo "$PIPE_FILE"
+
+    # プレビュースクリプトの作成
+    cat > "${TEMP_DIR}/preview.sh" << 'EOF'
+#!/bin/bash
+IFS=: read -r file line rest <<< "$1"
+if [ -z "$file" ] || [ -z "$line" ]; then
+    exit 1
+fi
+
+line=$(echo "$line" | tr -d '[:space:]')
+context=${2:-2}
+
+if [ "$line" -gt "$context" ]; then
+    start=$((line - context))
+else
+    start=1
+fi
+end=$((line + context))
+
+exec bat --style=numbers \
+    --color=always \
+    --highlight-line "$line" \
+    --line-range "$start:$end" \
+    "$file"
+EOF
+    chmod +x "${TEMP_DIR}/preview.sh"
+
+    # クリーンアップスクリプトの作成
+    cat > "${TEMP_DIR}/cleanup.sh" << 'EOF'
+#!/bin/bash
+kill_process_group() {
+    local pid=$1
+    if [ -n "$pid" ]; then
+        pkill -TERM -P "$pid" 2>/dev/null || true
+        kill -TERM "$pid" 2>/dev/null || true
+    fi
+}
+
+if [ -f "$1" ]; then
+    pid=$(cat "$1" 2>/dev/null)
+    kill_process_group "$pid"
+fi
+EOF
+    chmod +x "${TEMP_DIR}/cleanup.sh"
+
+    # 終了時のクリーンアップ
+    trap 'cleanup' EXIT INT TERM
+}
+
+# クリーンアップ処理
+cleanup() {
+    # 実行中のプロセスを終了
+    if [ -f "${TEMP_DIR}/current_search.pid" ]; then
+        "${TEMP_DIR}/cleanup.sh" "${TEMP_DIR}/current_search.pid"
+    fi
+
+    # 一時ディレクトリの削除
+    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+        rm -rf "$TEMP_DIR"
+    fi
+}
+
+# ヘルプの表示
+show_help() {
+    cat << EOF
+live-grep $VERSION
+リアルタイムなファイル内容検索を提供する対話的なコマンドラインツール
+
+Usage: live-grep [options] [paths...]
+
+Options:
+    -p, --pattern PATTERN    検索対象のファイルパターン (例: "*.rs")
+    -d, --depth DEPTH       検索の深さ
+    -c, --context LINES     プレビュー時の前後の表示行数 (デフォルト: 2)
+    -e, --exclude PATTERN   除外するファイルパターン
+    -h, --help             このヘルプを表示
+    -v, --version          バージョンを表示
+
+Examples:
+    live-grep                          # カレントディレクトリ以下を検索
+    live-grep -p "*.rs" src/           # src/以下のRustファイルを検索
+    live-grep -c 5                     # プレビューの前後5行を表示
+    live-grep -e "node_modules/"       # node_modulesを除外して検索
+EOF
+}
+
+# バージョンの表示
+show_version() {
+    echo "live-grep version $VERSION"
+}
+
+# 検索の実行
+execute_search() {
+    local query=$1
+    shift
+    local pid_file="${TEMP_DIR}/current_search.pid"
+
+    # クエリが空の場合は検索しない
+    if [ -z "$query" ]; then
+        echo ""
+        return
+    fi
+
+    # 前回の検索を終了
+    if [ -f "$pid_file" ]; then
+        "${TEMP_DIR}/cleanup.sh" "$pid_file"
+    fi
+
+    # 新しい検索を開始
+    "$@" & echo $! > "$pid_file"
+}
+
+# メイン処理
+main() {
+    local pattern=""
+    local depth=""
+    local exclude=""
+    local paths=()
+
+    # コマンドライン引数の処理
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            -v|--version)
+                show_version
+                exit 0
+                ;;
+            -p|--pattern)
+                pattern=$2
+                shift 2
+                ;;
+            -d|--depth)
+                depth=$2
+                shift 2
+                ;;
+            -c|--context)
+                PREVIEW_CONTEXT=$2
+                shift 2
+                ;;
+            -e|--exclude)
+                exclude=$2
+                shift 2
+                ;;
+            *)
+                paths+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    # 依存関係のチェック
+    check_dependencies
+
+    # 一時ディレクトリとパイプの設定
+    setup_temp
+
+    # 検索ディレクトリの設定
+    [ ${#paths[@]} -eq 0 ] && paths=(.)
+
+    # 検索オプションの構築
+    local rg_opts=(
+        --line-number
+        --column
+        --color always
+        --smart-case
+    )
+    [ -n "$pattern" ] && rg_opts+=(--type-add "custom:$pattern" --type custom)
+    [ -n "$depth" ] && rg_opts+=(--max-depth "$depth")
+    [ -n "$exclude" ] && rg_opts+=(--glob "!$exclude")
+
+    # 検索コマンドの構築
+    search_cmd="rg ${rg_opts[*]}"
+
+    # fzfの実行と結果の処理
+    echo "" | \
+    fzf \
+        --delimiter=: \
+        --preview "${TEMP_DIR}/preview.sh {} $PREVIEW_CONTEXT" \
+        --preview-window "right:50%:+{2}-$PREVIEW_CONTEXT" \
+        --bind "change:reload($search_cmd {q} ${paths[*]} || true)" \
+        --ansi \
+        --disabled \
+        --query "" \
+        --height "80%" \
+        --info inline \
+        --border \
+        --exit-0 | \
+    cut -d: -f1
+}
+
+main "$@"

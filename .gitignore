@@ -1,0 +1,14 @@
+# テストデータ
+test/
+
+# 一時ファイル
+*.swp
+*.swo
+*~
+.DS_Store
+
+# エディタの設定
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
