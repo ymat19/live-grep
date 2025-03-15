@@ -21,10 +21,7 @@ fzf、ripgrep、batを組み合わせた対話的なファイル内容検索ツ�
 インストール/アップデート:
 
 ```bash
-mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && \
-curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep \
-  -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && \
-chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
+mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 ```
 
 アンインストール:
