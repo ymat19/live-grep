@@ -20,19 +20,25 @@ fzf、ripgrep、batを組み合わせた対話的なファイル内容検索ツ�
 
 ```bash
 # インストール/アップデート (curl)
-curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep -o ~/.local/bin/live-grep && chmod +x ~/.local/bin/live-grep
+mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && \
+curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep \
+  -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && \
+chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 
 # インストール/アップデート (wget)
-wget -qO ~/.local/bin/live-grep https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep && chmod +x ~/.local/bin/live-grep
+mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && \
+wget -qO "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" \
+  https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep && \
+chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 
 # アンインストール
-rm ~/.local/bin/live-grep
+rm "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 ```
 
-**注意**: インストール前に~/.local/binがPATHに含まれていることを確認してください。含まれていない場合は、以下を~/.bashrcまたは~/.zshrcに追加してください：
+**注意**: インストール先のディレクトリがPATHに含まれていることを確認してください。含まれていない場合は、以下を~/.bashrcまたは~/.zshrcに追加してください：
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"
 ```
 
 ## 使い方
