@@ -14,19 +14,25 @@ fzf、ripgrep、batを組み合わせた対話的なファイル内容検索ツ�
 - ripgrep (rg)
 - bat
 - bash 4.0以上
+- curl または wget
 
 ## インストール
 
 ```bash
-# リポジトリのクローン
-git clone https://github.com/yourusername/live-grep-bash.git
-cd live-grep-bash
+# インストール/アップデート (curl)
+curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep -o ~/.local/bin/live-grep && chmod +x ~/.local/bin/live-grep
 
-# 実行権限を付与
-chmod +x live-grep
+# インストール/アップデート (wget)
+wget -qO ~/.local/bin/live-grep https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep && chmod +x ~/.local/bin/live-grep
 
-# PATHの通ったディレクトリにシンボリックリンクを作成（オプション）
-ln -s "$(pwd)/live-grep" ~/bin/live-grep
+# アンインストール
+rm ~/.local/bin/live-grep
+```
+
+**注意**: インストール前に~/.local/binがPATHに含まれていることを確認してください。含まれていない場合は、以下を~/.bashrcまたは~/.zshrcに追加してください：
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
 ## 使い方
