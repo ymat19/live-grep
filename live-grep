@@ -9,6 +9,7 @@ TEMP_DIR=""
 PIPE_FILE=""
 CURRENT_QUERY=""
 LAST_PID=""
+LINE_NUMBER=false
 
 # Check required dependencies
 check_dependencies() {
@@ -107,6 +108,7 @@ Options:
     -d, --depth DEPTH       Maximum search depth
     -c, --context LINES     Number of context lines in preview (default: 2)
     -e, --exclude PATTERN   Exclude pattern
+    -n, --line-number      Output file path with line number (e.g., file:80)
     -h, --help             Show this help message
     -v, --version          Show version
 
@@ -115,6 +117,7 @@ Examples:
     live-grep -p "*.rs" src/           # Search Rust files in src/
     live-grep -c 5                     # Show 5 context lines
     live-grep -e "node_modules/"       # Exclude node_modules directory
+    live-grep -n                       # Show line numbers in output
 EOF
 }
 
@@ -142,6 +145,15 @@ execute_search() {
 
     # Start new search
     "$@" & echo $! > "$pid_file"
+}
+
+# Format output based on settings
+format_output() {
+    if [ "$LINE_NUMBER" = true ]; then
+        cut -d: -f1,2
+    else
+        cut -d: -f1
+    fi
 }
 
 # Main process
@@ -177,6 +189,10 @@ main() {
             -e|--exclude)
                 exclude=$2
                 shift 2
+                ;;
+            -n|--line-number)
+                LINE_NUMBER=true
+                shift
                 ;;
             *)
                 paths+=("$1")
@@ -222,7 +238,7 @@ main() {
         --info inline \
         --border \
         --exit-0 | \
-    cut -d: -f1
+    format_output
 }
 
 main "$@"

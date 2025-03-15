@@ -48,6 +48,9 @@ live-grep
 
 # 特定のディレクトリを検索
 live-grep src/
+
+# 行番号付きで出力
+live-grep -n  # "ファイル:80" のように出力
 ```
 
 ### オプション
@@ -69,8 +72,8 @@ live-grep -e "node_modules/"
 # 選択したファイルをVimで開く
 live-grep | xargs vim
 
-# 選択したファイルの内容を表示
-live-grep | xargs cat
+# 特定の行でファイルを開く（-nオプション使用時）
+live-grep -n | awk -F: '{print "+"$2" "$1}' | xargs vim
 ```
 
 ### キーバインド
@@ -86,6 +89,7 @@ live-grep | xargs cat
 - `-d, --depth DEPTH`: 検索の深さ
 - `-c, --context LINES`: プレビュー時の前後の表示行数 (デフォルト: 2)
 - `-e, --exclude PATTERN`: 除外するファイルパターン
+- `-n, --line-number`: 行番号付きでファイルパスを出力
 - `-h, --help`: ヘルプを表示
 - `-v, --version`: バージョンを表示
 

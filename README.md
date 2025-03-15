@@ -48,6 +48,9 @@ live-grep
 
 # Search in specific directory
 live-grep src/
+
+# Search with line numbers in output
+live-grep -n  # outputs like "file:80"
 ```
 
 ### Options
@@ -69,8 +72,8 @@ live-grep -e "node_modules/"
 # Open selected file in Vim
 live-grep | xargs vim
 
-# Display selected file content
-live-grep | xargs cat
+# Open file at specific line (with -n option)
+live-grep -n | awk -F: '{print "+"$2" "$1}' | xargs vim
 ```
 
 ### Key Bindings
@@ -86,6 +89,7 @@ live-grep | xargs cat
 - `-d, --depth DEPTH`: Maximum search depth
 - `-c, --context LINES`: Number of context lines in preview (default: 2)
 - `-e, --exclude PATTERN`: Exclude pattern
+- `-n, --line-number`: Output file path with line number
 - `-h, --help`: Show help message
 - `-v, --version`: Show version
 
