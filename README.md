@@ -1,92 +1,94 @@
 # live-grep-bash
 
-fzf、ripgrep、batを組み合わせた対話的なファイル内容検索ツール
+An interactive command-line tool that combines fzf, ripgrep, and bat for real-time file content search.
 
-## 特徴
+[日本語のREADME](README.ja.md)
 
-- リアルタイムな検索結果の表示
-- シンタックスハイライト付きプレビュー
-- 検索結果からファイルパスを簡単に取得
+## Features
 
-## 必要なもの
+- Real-time search results display
+- Syntax-highlighted preview
+- Easy file path extraction from search results
+
+## Requirements
 
 - fzf
 - ripgrep (rg)
 - bat
-- bash 4.0以上
+- bash 4.0+
 - curl
 
-## インストール
+## Installation
 
-インストール/アップデート:
+Install/Update:
 
 ```bash
 mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 ```
 
-アンインストール:
+Uninstall:
 
 ```bash
 rm "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 ```
 
-**注意**: インストール先のディレクトリがPATHに含まれていることを確認してください。含まれていない場合は、以下を~/.bashrcまたは~/.zshrcに追加してください：
+**Note**: Make sure the installation directory is in your PATH. If not, add the following to your ~/.bashrc or ~/.zshrc:
 
 ```bash
 export PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"
 ```
 
-## 使い方
+## Usage
 
-### 基本的な使い方
+### Basic Usage
 
 ```bash
-# カレントディレクトリを検索
+# Search in current directory
 live-grep
 
-# 特定のディレクトリを検索
+# Search in specific directory
 live-grep src/
 ```
 
-### オプション
+### Options
 
 ```bash
-# 特定の拡張子のファイルのみ検索
+# Search specific file extensions
 live-grep -p "*.rs"
 
-# プレビューの前後の行数を指定
+# Set number of context lines
 live-grep -c 5
 
-# 特定のディレクトリを除外
+# Exclude specific directories
 live-grep -e "node_modules/"
 ```
 
-### コマンド実行結果をパイプで処理
+### Pipeline Usage
 
 ```bash
-# 選択したファイルをVimで開く
+# Open selected file in Vim
 live-grep | xargs vim
 
-# 選択したファイルの内容を表示
+# Display selected file content
 live-grep | xargs cat
 ```
 
-### キーバインド
+### Key Bindings
 
-- 検索文字列を入力すると、リアルタイムに結果が表示されます
-- 矢印キーで結果をナビゲート
-- Enter で選択したファイルのパスを出力
-- Ctrl-C で終了
+- Type to search in real-time
+- Navigate results with arrow keys
+- Press Enter to output selected file path
+- Press Ctrl-C to exit
 
-## オプション一覧
+## Options List
 
-- `-p, --pattern PATTERN`: 検索対象のファイルパターン (例: "*.rs")
-- `-d, --depth DEPTH`: 検索の深さ
-- `-c, --context LINES`: プレビュー時の前後の表示行数 (デフォルト: 2)
-- `-e, --exclude PATTERN`: 除外するファイルパターン
-- `-h, --help`: ヘルプを表示
-- `-v, --version`: バージョンを表示
+- `-p, --pattern PATTERN`: File pattern to search (e.g., "*.rs")
+- `-d, --depth DEPTH`: Maximum search depth
+- `-c, --context LINES`: Number of context lines in preview (default: 2)
+- `-e, --exclude PATTERN`: Exclude pattern
+- `-h, --help`: Show help message
+- `-v, --version`: Show version
 
-## ライセンス
+## License
 
-MIT License - 詳細は[LICENSE](LICENSE)を参照してください
+MIT License - See [LICENSE](LICENSE) for details

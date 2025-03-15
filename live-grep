@@ -2,7 +2,7 @@
 
 set -e
 
-# 設定
+# Configuration
 VERSION="0.1.0"
 PREVIEW_CONTEXT=2
 TEMP_DIR=""
@@ -10,7 +10,7 @@ PIPE_FILE=""
 CURRENT_QUERY=""
 LAST_PID=""
 
-# 依存コマンドの確認
+# Check required dependencies
 check_dependencies() {
     local missing=()
     for cmd in fzf rg bat mkfifo; do
@@ -26,14 +26,14 @@ check_dependencies() {
     fi
 }
 
-# 一時ディレクトリの作成とプロセス間通信の設定
+# Setup temporary directory and IPC
 setup_temp() {
     TEMP_DIR=$(mktemp -d)
     PIPE_FILE="${TEMP_DIR}/results"
-    # プロセス間通信用のパイプを作成
+    # Create a pipe for inter-process communication
     mkfifo "$PIPE_FILE"
 
-    # プレビュースクリプトの作成
+    # Create preview script
     cat > "${TEMP_DIR}/preview.sh" << 'EOF'
 #!/bin/bash
 IFS=: read -r file line rest <<< "$1"
@@ -59,7 +59,7 @@ exec bat --style=numbers \
 EOF
     chmod +x "${TEMP_DIR}/preview.sh"
 
-    # クリーンアップスクリプトの作成
+    # Create cleanup script
     cat > "${TEMP_DIR}/cleanup.sh" << 'EOF'
 #!/bin/bash
 kill_process_group() {
@@ -77,81 +77,81 @@ fi
 EOF
     chmod +x "${TEMP_DIR}/cleanup.sh"
 
-    # 終了時のクリーンアップ
+    # Set cleanup trap
     trap 'cleanup' EXIT INT TERM
 }
 
-# クリーンアップ処理
+# Cleanup resources
 cleanup() {
-    # 実行中のプロセスを終了
+    # Kill running processes
     if [ -f "${TEMP_DIR}/current_search.pid" ]; then
         "${TEMP_DIR}/cleanup.sh" "${TEMP_DIR}/current_search.pid"
     fi
 
-    # 一時ディレクトリの削除
+    # Remove temporary directory
     if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
         rm -rf "$TEMP_DIR"
     fi
 }
 
-# ヘルプの表示
+# Display help message
 show_help() {
     cat << EOF
 live-grep $VERSION
-リアルタイムなファイル内容検索を提供する対話的なコマンドラインツール
+Interactive command-line tool for real-time file content search
 
 Usage: live-grep [options] [paths...]
 
 Options:
-    -p, --pattern PATTERN    検索対象のファイルパターン (例: "*.rs")
-    -d, --depth DEPTH       検索の深さ
-    -c, --context LINES     プレビュー時の前後の表示行数 (デフォルト: 2)
-    -e, --exclude PATTERN   除外するファイルパターン
-    -h, --help             このヘルプを表示
-    -v, --version          バージョンを表示
+    -p, --pattern PATTERN    File pattern to search (e.g., "*.rs")
+    -d, --depth DEPTH       Maximum search depth
+    -c, --context LINES     Number of context lines in preview (default: 2)
+    -e, --exclude PATTERN   Exclude pattern
+    -h, --help             Show this help message
+    -v, --version          Show version
 
 Examples:
-    live-grep                          # カレントディレクトリ以下を検索
-    live-grep -p "*.rs" src/           # src/以下のRustファイルを検索
-    live-grep -c 5                     # プレビューの前後5行を表示
-    live-grep -e "node_modules/"       # node_modulesを除外して検索
+    live-grep                          # Search in current directory
+    live-grep -p "*.rs" src/           # Search Rust files in src/
+    live-grep -c 5                     # Show 5 context lines
+    live-grep -e "node_modules/"       # Exclude node_modules directory
 EOF
 }
 
-# バージョンの表示
+# Display version
 show_version() {
     echo "live-grep version $VERSION"
 }
 
-# 検索の実行
+# Execute search
 execute_search() {
     local query=$1
     shift
     local pid_file="${TEMP_DIR}/current_search.pid"
 
-    # クエリが空の場合は検索しない
+    # Skip empty query
     if [ -z "$query" ]; then
         echo ""
         return
     fi
 
-    # 前回の検索を終了
+    # Kill previous search
     if [ -f "$pid_file" ]; then
         "${TEMP_DIR}/cleanup.sh" "$pid_file"
     fi
 
-    # 新しい検索を開始
+    # Start new search
     "$@" & echo $! > "$pid_file"
 }
 
-# メイン処理
+# Main process
 main() {
     local pattern=""
     local depth=""
     local exclude=""
     local paths=()
 
-    # コマンドライン引数の処理
+    # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
             -h|--help)
@@ -185,16 +185,16 @@ main() {
         esac
     done
 
-    # 依存関係のチェック
+    # Check dependencies
     check_dependencies
 
-    # 一時ディレクトリとプロセス間通信の設定
+    # Setup temporary directory and IPC
     setup_temp
 
-    # 検索ディレクトリの設定
+    # Set search paths
     [ ${#paths[@]} -eq 0 ] && paths=(.)
 
-    # 検索オプションの構築
+    # Build ripgrep options
     local rg_opts=(
         --line-number
         --column
@@ -205,10 +205,10 @@ main() {
     [ -n "$depth" ] && rg_opts+=(--max-depth "$depth")
     [ -n "$exclude" ] && rg_opts+=(--glob "!$exclude")
 
-    # 検索コマンドの構築
+    # Build search command
     search_cmd="rg ${rg_opts[*]}"
 
-    # fzfの実行と結果の処理
+    # Execute fzf and process results
     echo "" | \
     fzf \
         --delimiter=: \
