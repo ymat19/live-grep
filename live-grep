@@ -26,10 +26,11 @@ check_dependencies() {
     fi
 }
 
-# 一時ディレクトリとパイプの設定
+# 一時ディレクトリの作成とプロセス間通信の設定
 setup_temp() {
     TEMP_DIR=$(mktemp -d)
     PIPE_FILE="${TEMP_DIR}/results"
+    # プロセス間通信用のパイプを作成
     mkfifo "$PIPE_FILE"
 
     # プレビュースクリプトの作成
@@ -187,7 +188,7 @@ main() {
     # 依存関係のチェック
     check_dependencies
 
-    # 一時ディレクトリとパイプの設定
+    # 一時ディレクトリとプロセス間通信の設定
     setup_temp
 
     # 検索ディレクトリの設定
