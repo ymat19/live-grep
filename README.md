@@ -14,24 +14,22 @@ fzf、ripgrep、batを組み合わせた対話的なファイル内容検索ツ�
 - ripgrep (rg)
 - bat
 - bash 4.0以上
-- curl または wget
+- curl
 
 ## インストール
 
+インストール/アップデート:
+
 ```bash
-# インストール/アップデート (curl)
 mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && \
 curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep \
   -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && \
 chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
+```
 
-# インストール/アップデート (wget)
-mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && \
-wget -qO "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" \
-  https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep && \
-chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
+アンインストール:
 
-# アンインストール
+```bash
 rm "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 ```
 
