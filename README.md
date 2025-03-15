@@ -1,4 +1,4 @@
-# live-grep-bash
+# live-grep-cli
 
 An interactive command-line tool that combines fzf, ripgrep, and bat for real-time file content search.
 
@@ -23,7 +23,7 @@ An interactive command-line tool that combines fzf, ripgrep, and bat for real-ti
 Install/Update:
 
 ```bash
-mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
+mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-cli/main/live-grep -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 ```
 
 Uninstall:
@@ -74,6 +74,13 @@ live-grep | xargs vim
 
 # Open file at specific line (with -n option)
 live-grep -n | awk -F: '{print "+"$2" "$1}' | xargs vim
+```
+
+### VS Code Usage
+
+```bash
+# Open file in VS Code from integrated terminal
+code --reuse-window -g $(live-grep -n)
 ```
 
 ### Key Bindings

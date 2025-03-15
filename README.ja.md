@@ -1,4 +1,4 @@
-# live-grep-bash
+# live-grep-cli
 
 fzf、ripgrep、batを組み合わせた対話的なファイル内容検索ツール
 
@@ -23,7 +23,7 @@ fzf、ripgrep、batを組み合わせた対話的なファイル内容検索ツ�
 インストール/アップデート:
 
 ```bash
-mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-bash/main/live-grep -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
+mkdir -p "${XDG_BIN_HOME:-$HOME/.local/bin}" && curl -fsSL https://raw.githubusercontent.com/ymat19/live-grep-cli/main/live-grep -o "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep" && chmod +x "${XDG_BIN_HOME:-$HOME/.local/bin}/live-grep"
 ```
 
 アンインストール:
@@ -74,6 +74,13 @@ live-grep | xargs vim
 
 # 特定の行でファイルを開く（-nオプション使用時）
 live-grep -n | awk -F: '{print "+"$2" "$1}' | xargs vim
+```
+
+### VS Codeでの使用
+
+```bash
+# 組み込みターミナルからファイルを開く
+code --reuse-window -g $(live-grep -n)
 ```
 
 ### キーバインド
