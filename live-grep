@@ -129,23 +129,24 @@ main() {
     search_cmd="rg ${rg_opts[*]}"
 
     # Execute fzf and process results
+    # Define preview command with proper context value
+    PREVIEW_CMD='file=$(echo {} | cut -d: -f1); \
+                line=$(echo {} | cut -d: -f2); \
+                if [ -n "$line" ]; then \
+                    if [ "$line" -gt "'$PREVIEW_CONTEXT'" ]; then \
+                        start=$((line - '$PREVIEW_CONTEXT')); \
+                    else \
+                        start=1; \
+                    fi; \
+                    end=$((line + '$PREVIEW_CONTEXT')); \
+                    bat --style=numbers --color=always --highlight-line "$line" \
+                        --line-range "$start:$end" "$file"; \
+                fi'
+
     echo "" | \
     fzf \
         --delimiter=: \
-        --preview 'file=$(echo {} | cut -d: -f1); \
-                  line=$(echo {} | cut -d: -f2); \
-                  if [ -n "$line" ]; then \
-                      if [ "$line" -gt "$PREVIEW_CONTEXT" ]; then \
-                          start=$((line - PREVIEW_CONTEXT)); \
-                      else \
-                          start=1; \
-                      fi; \
-                      end=$((line + PREVIEW_CONTEXT)); \
-                      echo $PREVIEW_CONTEXT >> ./test/log.txt; \
-                      echo "$start:$end" >> ./test/log.txt; \
-                      bat --style=numbers --color=always --highlight-line "$line" \
-                          --line-range "$start:$end" "$file"; \
-                  fi' \
+        --preview "$PREVIEW_CMD" \
         --preview-window "right:50%" \
         --bind "change:reload($search_cmd {q} ${paths[*]} || true)" \
         --ansi \
