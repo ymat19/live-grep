@@ -6,7 +6,6 @@ set -e
 VERSION="0.1.0"
 PREVIEW_CONTEXT=2
 TEMP_DIR=""
-PIPE_FILE=""
 CURRENT_QUERY=""
 LAST_PID=""
 LINE_NUMBER=false
@@ -27,12 +26,9 @@ check_dependencies() {
     fi
 }
 
-# Setup temporary directory and IPC
+# Setup temporary directory
 setup_temp() {
     TEMP_DIR=$(mktemp -d)
-    PIPE_FILE="${TEMP_DIR}/results"
-    # Create a pipe for inter-process communication
-    mkfifo "$PIPE_FILE"
 
     # Create preview script
     cat > "${TEMP_DIR}/preview.sh" << 'EOF'
