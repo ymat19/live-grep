@@ -148,7 +148,7 @@ main() {
         --delimiter=: \
         --preview "$PREVIEW_CMD" \
         --preview-window "right:50%" \
-        --bind "change:reload($search_cmd {q} ${paths[*]} || true)" \
+        --bind "change:reload:$search_cmd --fixed-strings -e {q} ${paths[*]} || true" \
         --ansi \
         --disabled \
         --query "" \
