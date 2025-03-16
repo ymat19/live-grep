@@ -5,15 +5,12 @@ set -e
 # Configuration
 VERSION="0.1.0"
 PREVIEW_CONTEXT=2
-TEMP_DIR=""
-CURRENT_QUERY=""
-LAST_PID=""
 LINE_NUMBER=false
 
 # Check required dependencies
 check_dependencies() {
     local missing=()
-    for cmd in fzf rg bat mkfifo; do
+    for cmd in fzf rg bat; do
         if ! command -v "$cmd" &> /dev/null; then
             missing+=("$cmd")
         fi
@@ -23,71 +20,6 @@ check_dependencies() {
         echo "Error: Required commands not found: ${missing[*]}" >&2
         echo "Please install missing dependencies and try again." >&2
         exit 1
-    fi
-}
-
-# Setup temporary directory
-setup_temp() {
-    TEMP_DIR=$(mktemp -d)
-
-    # Create preview script
-    cat > "${TEMP_DIR}/preview.sh" << 'EOF'
-#!/bin/bash
-IFS=: read -r file line rest <<< "$1"
-if [ -z "$file" ] || [ -z "$line" ]; then
-    exit 1
-fi
-
-line=$(echo "$line" | tr -d '[:space:]')
-context=${2:-2}
-
-if [ "$line" -gt "$context" ]; then
-    start=$((line - context))
-else
-    start=1
-fi
-end=$((line + context))
-
-exec bat --style=numbers \
-    --color=always \
-    --highlight-line "$line" \
-    --line-range "$start:$end" \
-    "$file"
-EOF
-    chmod +x "${TEMP_DIR}/preview.sh"
-
-    # Create cleanup script
-    cat > "${TEMP_DIR}/cleanup.sh" << 'EOF'
-#!/bin/bash
-kill_process_group() {
-    local pid=$1
-    if [ -n "$pid" ]; then
-        pkill -TERM -P "$pid" 2>/dev/null || true
-        kill -TERM "$pid" 2>/dev/null || true
-    fi
-}
-
-if [ -f "$1" ]; then
-    pid=$(cat "$1" 2>/dev/null)
-    kill_process_group "$pid"
-fi
-EOF
-    chmod +x "${TEMP_DIR}/cleanup.sh"
-
-    # Set cleanup trap
-    trap 'cleanup' EXIT INT TERM
-}
-
-# Cleanup resources
-cleanup() {
-    # Kill running processes
-    if [ -f "${TEMP_DIR}/current_search.pid" ]; then
-        "${TEMP_DIR}/cleanup.sh" "${TEMP_DIR}/current_search.pid"
-    fi
-
-    # Remove temporary directory
-    if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
-        rm -rf "$TEMP_DIR"
     fi
 }
 
@@ -120,27 +52,6 @@ EOF
 # Display version
 show_version() {
     echo "live-grep version $VERSION"
-}
-
-# Execute search
-execute_search() {
-    local query=$1
-    shift
-    local pid_file="${TEMP_DIR}/current_search.pid"
-
-    # Skip empty query
-    if [ -z "$query" ]; then
-        echo ""
-        return
-    fi
-
-    # Kill previous search
-    if [ -f "$pid_file" ]; then
-        "${TEMP_DIR}/cleanup.sh" "$pid_file"
-    fi
-
-    # Start new search
-    "$@" & echo $! > "$pid_file"
 }
 
 # Format output based on settings
@@ -200,9 +111,6 @@ main() {
     # Check dependencies
     check_dependencies
 
-    # Setup temporary directory and IPC
-    setup_temp
-
     # Set search paths
     [ ${#paths[@]} -eq 0 ] && paths=(.)
 
@@ -224,8 +132,21 @@ main() {
     echo "" | \
     fzf \
         --delimiter=: \
-        --preview "${TEMP_DIR}/preview.sh {} $PREVIEW_CONTEXT" \
-        --preview-window "right:50%:+{2}-$PREVIEW_CONTEXT" \
+        --preview 'file=$(echo {} | cut -d: -f1); \
+                  line=$(echo {} | cut -d: -f2); \
+                  if [ -n "$line" ]; then \
+                      if [ "$line" -gt "$PREVIEW_CONTEXT" ]; then \
+                          start=$((line - PREVIEW_CONTEXT)); \
+                      else \
+                          start=1; \
+                      fi; \
+                      end=$((line + PREVIEW_CONTEXT)); \
+                      echo $PREVIEW_CONTEXT >> ./test/log.txt; \
+                      echo "$start:$end" >> ./test/log.txt; \
+                      bat --style=numbers --color=always --highlight-line "$line" \
+                          --line-range "$start:$end" "$file"; \
+                  fi' \
+        --preview-window "right:50%" \
         --bind "change:reload($search_cmd {q} ${paths[*]} || true)" \
         --ansi \
         --disabled \
