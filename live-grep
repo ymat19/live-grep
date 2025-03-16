@@ -32,19 +32,15 @@ Interactive command-line tool for real-time file content search
 Usage: live-grep [options] [paths...]
 
 Options:
-    -p, --pattern PATTERN    File pattern to search (e.g., "*.rs")
     -d, --depth DEPTH       Maximum search depth
     -c, --context LINES     Number of context lines in preview (default: 2)
-    -e, --exclude PATTERN   Exclude pattern
     -n, --line-number      Output file path with line number (e.g., file:80)
     -h, --help             Show this help message
     -v, --version          Show version
 
 Examples:
     live-grep                          # Search in current directory
-    live-grep -p "*.rs" src/           # Search Rust files in src/
     live-grep -c 5                     # Show 5 context lines
-    live-grep -e "node_modules/"       # Exclude node_modules directory
     live-grep -n                       # Show line numbers in output
 EOF
 }

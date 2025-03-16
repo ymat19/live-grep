@@ -56,14 +56,8 @@ live-grep -n  # "ファイル:80" のように出力
 ### オプション
 
 ```bash
-# 特定の拡張子のファイルのみ検索
-live-grep -p "*.rs"
-
 # プレビューの前後の行数を指定
 live-grep -c 5
-
-# 特定のディレクトリを除外
-live-grep -e "node_modules/"
 ```
 
 ### パイプラインでの利用
@@ -92,10 +86,8 @@ code --reuse-window -g $(live-grep -n)
 
 ## オプション一覧
 
-- `-p, --pattern PATTERN`: 検索対象のファイルパターン (例: "*.rs")
 - `-d, --depth DEPTH`: 検索の深さ
 - `-c, --context LINES`: プレビュー時の前後の表示行数 (デフォルト: 2)
-- `-e, --exclude PATTERN`: 除外するファイルパターン
 - `-n, --line-number`: 行番号付きでファイルパスを出力
 - `-h, --help`: ヘルプを表示
 - `-v, --version`: バージョンを表示

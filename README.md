@@ -56,14 +56,8 @@ live-grep -n  # outputs like "file:80"
 ### Options
 
 ```bash
-# Search specific file extensions
-live-grep -p "*.rs"
-
 # Set number of context lines
 live-grep -c 5
-
-# Exclude specific directories
-live-grep -e "node_modules/"
 ```
 
 ### Pipeline Usage
@@ -92,10 +86,8 @@ code --reuse-window -g $(live-grep -n)
 
 ## Options List
 
-- `-p, --pattern PATTERN`: File pattern to search (e.g., "*.rs")
 - `-d, --depth DEPTH`: Maximum search depth
 - `-c, --context LINES`: Number of context lines in preview (default: 2)
-- `-e, --exclude PATTERN`: Exclude pattern
 - `-n, --line-number`: Output file path with line number
 - `-h, --help`: Show help message
 - `-v, --version`: Show version
