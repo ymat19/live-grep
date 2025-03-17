@@ -4,7 +4,7 @@ set -e
 
 # Configuration
 VERSION="0.1.0"
-PREVIEW_CONTEXT=2
+PREVIEW_CONTEXT=5
 LINE_NUMBER=false
 
 # Check required dependencies
@@ -143,7 +143,7 @@ main() {
     fzf \
         --delimiter=: \
         --preview "$PREVIEW_CMD" \
-        --preview-window "right:50%" \
+        --preview-window "right:45%" \
         --bind "change:reload:$search_cmd --fixed-strings -e {q} ${paths[*]} || true" \
         --ansi \
         --disabled \
